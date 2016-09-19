@@ -1668,8 +1668,14 @@ func runHooks(jirix *jiri.X, ops []operation) error {
 		if op.Kind() != "create" && op.Kind() != "move" && op.Kind() != "update" {
 			continue
 		}
+
+		// Add the $JIRI_ROOT variable to the run hook environement.
+		env := map[string]string{
+			"JIRI_ROOT": jirix.Root,
+		}
+
 		s := jirix.NewSeq()
-		s.Verbose(true).Output([]string{fmt.Sprintf("running hook for project %q", op.Project().Name)})
+		s.Env(env).Verbose(true).Output([]string{fmt.Sprintf("running hook for project %q", op.Project().Name)})
 		if err := s.Dir(op.Project().Path).Capture(os.Stdout, os.Stderr).Last(op.Project().RunHook, op.Kind()); err != nil {
 			// TODO(nlacasse): Should we delete projectDir or perform some
 			// other cleanup in the event of a hook failure?
